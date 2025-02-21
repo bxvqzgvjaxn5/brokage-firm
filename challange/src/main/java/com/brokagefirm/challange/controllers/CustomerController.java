@@ -16,6 +16,7 @@ import com.brokagefirm.challange.services.CustomerService;
 import com.brokagefirm.challange.services.OrderService;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,15 +63,15 @@ public class CustomerController {
         orderService.depositMoney(id, amount);
     }
 
-    @PostMapping("/customers/{id}/stocks")
-    public List<StockItem> getStocks(@RequestParam Long id) {
-        
+    @GetMapping("/customers/{id}/stocks")
+    public List<StockItem> getStocks(@PathVariable Long id) {
         AnnotationAuth.validateCustomer(customerService.getCustomer(id));
 
         List<Asset> assets = assetService.getAssets();
         List<StockItem> stocks = new ArrayList<>();
         for (Asset asset : assets) {
             StockItem stock = orderService.getStockItem(id, asset.getId());
+            stocks.add(stock);
         }
         return stocks;
     }

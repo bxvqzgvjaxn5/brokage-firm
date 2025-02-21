@@ -12,24 +12,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.brokagefirm.challange.models.Customer;
+import com.brokagefirm.challange.models.CustomerType;
 
 import org.springframework.security.core.GrantedAuthority;
 
 
 public class AnnotationAuth {
+    public static boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals(CustomerType.ADMIN.name()));
+    }
+
     public static void validate(Object obj) throws Exception {
         for (Method method : obj.getClass().getDeclaredMethods()) {
             if (method.isAnnotationPresent(AnnotationAuthCheck.class)) {
                 AnnotationAuthCheck annotation = method.getAnnotation(AnnotationAuthCheck.class);
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (authentication == null) {
-                    throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Unauthorized");
-                }
-                String role = authentication.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .findFirst()
-                        .orElseThrow(() -> new HttpClientErrorException(HttpStatus.FORBIDDEN, "Forbidden"));
-                if (!role.equals(annotation.value())) {
+                if (annotation.value() == CustomerType.ADMIN && !isAdmin()) {
                     throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Forbidden");
                 }
             }
@@ -40,6 +43,10 @@ public class AnnotationAuth {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+
+        if (isAdmin()) {
+            return;
         }
 
         if (!authentication.getName().equals(expectedCustomer.getEmail())) {
