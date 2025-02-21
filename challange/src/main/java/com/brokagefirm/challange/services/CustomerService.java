@@ -1,5 +1,6 @@
 package com.brokagefirm.challange.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,12 @@ public class CustomerService {
         customerRepository.deleteById(id);
     }
 
-    public void createCustomer(Customer customer) {
-        customerRepository.save(customer);
+    public Customer createCustomer(Customer customer) {
+        return customerRepository.save(customer);
     }
 
     public Customer getAssetVendorCustomer() {
-        Optional<Customer> customer = customerRepository.findByType(CustomerType.ASSET_VENDOR);
+        Optional<Customer> customer = customerRepository.findByType(CustomerType.ADMIN);
         if (!customer.isPresent()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Asset vendor customer not found");
         }
@@ -40,5 +41,9 @@ public class CustomerService {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Customer not found with id: " + id);
         }
         return customer.get();
+    }
+
+    public List<Customer> getCustomers() {
+        return customerRepository.findAll();
     }
 }

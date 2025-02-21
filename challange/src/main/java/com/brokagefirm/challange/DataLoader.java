@@ -1,5 +1,7 @@
 package com.brokagefirm.challange;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +27,20 @@ public class DataLoader implements CommandLineRunner {
     private final AssetRepository assetRepository;
     private final OrderRepository orderRepository;
     private final String mainAssetName;
+    private final PasswordEncoder passwordEncoder;
 
     public DataLoader(
         CustomerRepository customerRepository,
         AssetRepository assetRepository,
         OrderRepository orderRepository,
-        @Value("${brokagefirm.mainasset.name}") String mainAssetName
+        @Value("${brokagefirm.mainasset.name}") String mainAssetName,
+        PasswordEncoder passwordEncoder
     ) {
         this.customerRepository = customerRepository;
         this.assetRepository = assetRepository;
         this.orderRepository = orderRepository;
         this.mainAssetName = mainAssetName;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -47,19 +52,19 @@ public class DataLoader implements CommandLineRunner {
 
         Customer customerAssetVendor = new Customer();
         customerAssetVendor.setEmail("admin@example.com");
-        customerAssetVendor.setPassword("password");
-        customerAssetVendor.setType(CustomerType.ASSET_VENDOR);
+        customerAssetVendor.setPassword(passwordEncoder.encode("password"));
+        customerAssetVendor.setType(CustomerType.ADMIN);
         customerRepository.save(customerAssetVendor);
 
         Customer customerInvestor1 = new Customer();
         customerInvestor1.setEmail("investor1@example.com");
-        customerInvestor1.setPassword("password");
+        customerInvestor1.setPassword(passwordEncoder.encode("password"));
         customerInvestor1.setType(CustomerType.INVESTOR);
         customerRepository.save(customerInvestor1);
 
         Customer customerInvestor2 = new Customer();
         customerInvestor2.setEmail("investor0@example.com");
-        customerInvestor2.setPassword("password");
+        customerInvestor2.setPassword(passwordEncoder.encode("password"));
         customerInvestor2.setType(CustomerType.INVESTOR);
         customerRepository.save(customerInvestor2);
 

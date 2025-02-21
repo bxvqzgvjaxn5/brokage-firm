@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.brokagefirm.challange.models.Order;
+import com.brokagefirm.challange.models.OrderStatus;
 import com.brokagefirm.challange.services.OrderService;
 
 @RestController
@@ -27,6 +28,7 @@ public class OrderController {
 
     @PostMapping("/orders")
     public Order createOrder(@RequestBody Order order) {
+        order.setStatus(OrderStatus.PENDING);
         return orderService.createOrder(order);
     }
 

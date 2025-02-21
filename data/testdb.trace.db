@@ -1,3 +1,0 @@
-2025-02-21 22:24:50.041685+03:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CUSTOMER" not found (this database is empty); SQL statement:
-insert into customer (email,password,type,id) values (?,?,?,default) [42104-232]

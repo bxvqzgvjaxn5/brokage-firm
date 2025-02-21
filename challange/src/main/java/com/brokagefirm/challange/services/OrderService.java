@@ -61,7 +61,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public void initSellOrderForBrokerageFirm(Long assetId, Integer quantity, Integer price) {
+    public void createPublicOffer(Long assetId, Integer quantity, Integer price) {
         Customer customer = customerService.getAssetVendorCustomer();
         Asset savedAsset = assetService.getAsset(assetId);
 
@@ -70,13 +70,13 @@ public class OrderService {
         order.setAsset(savedAsset);
         order.setQuantity(quantity);
         order.setPrice(price);
-        order.setSide(OrderSide.SELL);
+        order.setSide(OrderSide.BUY);
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(new Date());
         orderRepository.save(order);
     }
 
-    public void initBuyOrderForCustomer(Long customerId, Integer quantity) {
+    public void depositMoney(Long customerId, Integer quantity) {
         Customer customer = customerService.getCustomer(customerId);
         Asset savedAsset = assetService.getMainAsset();
 
@@ -85,8 +85,8 @@ public class OrderService {
         order.setAsset(savedAsset);
         order.setQuantity(quantity);
         order.setPrice(Integer.valueOf(1));
-        order.setSide(OrderSide.BUY);
-        order.setStatus(OrderStatus.PENDING);
+        order.setSide(OrderSide.SELL);
+        order.setStatus(OrderStatus.MATCHED);
         order.setCreatedAt(new Date());
         orderRepository.save(order);
     }
