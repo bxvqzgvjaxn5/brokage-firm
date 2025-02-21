@@ -25,7 +25,7 @@ public class AnnotationAuth {
         }
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals(CustomerType.ADMIN.name()));
+                .anyMatch(role -> role.equals("ROLE_" + CustomerType.ADMIN.name()));
     }
 
     public static void validate(Object obj) throws Exception {

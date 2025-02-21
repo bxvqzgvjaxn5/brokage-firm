@@ -71,7 +71,9 @@ public class CustomerController {
         List<StockItem> stocks = new ArrayList<>();
         for (Asset asset : assets) {
             StockItem stock = orderService.getStockItem(id, asset.getId());
-            stocks.add(stock);
+            if (stock.getQuantity() > 0) {
+                stocks.add(stock);
+            }
         }
         return stocks;
     }
