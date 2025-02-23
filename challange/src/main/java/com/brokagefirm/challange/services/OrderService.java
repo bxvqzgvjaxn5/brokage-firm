@@ -158,13 +158,16 @@ public class OrderService {
     }
 
     // TODO critical section
-    public void matchOrder(Order order) {
+    public void applyOrder(Order order) {
         if (!validateOrder(order)) {
-            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Insufficient funds");
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Insufficient funds, order cancelled");
         }
         OrderSide oppositeOrderSide = order.getSide() == OrderSide.BUY ? OrderSide.SELL : OrderSide.BUY;
         Optional<List<Order>> ordersO = orderRepository.findByStatusAndSideOrderByCreatedAtAsc(OrderStatus.PENDING, oppositeOrderSide);
         if (!ordersO.isPresent()) {
+            orderRepository.save(order);
             return;
         }
         List<Order> orders = ordersO.get();

@@ -45,6 +45,10 @@ public class DataLoader implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        if (customerRepository.count() > 0) {
+            return;
+        }
+
         orderRepository.deleteAll();
         customerRepository.deleteAll();
         assetRepository.deleteAll();

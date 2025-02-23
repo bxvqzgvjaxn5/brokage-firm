@@ -47,7 +47,7 @@ public class OrderController {
         order.setId(null);
 
         Order createdOrder = orderService.createOrder(order);
-        orderService.matchOrder(createdOrder);
+        orderService.applyOrder(createdOrder);
         return createdOrder;
     }
 
@@ -62,9 +62,8 @@ public class OrderController {
         order.setSide(OrderSide.BUY);
         order.setId(null);
 
-        Order createdOrder = orderService.createOrder(order);
-        orderService.matchOrder(createdOrder);
-        return createdOrder;
+        orderService.applyOrder(order);
+        return order;
     }
 
     @DeleteMapping("/order-cancel")

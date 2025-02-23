@@ -10,6 +10,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<String> handleHttpClientErrorException(HttpClientErrorException ex) {
-        return new ResponseEntity<>(ex.getResponseBodyAsString(), ex.getStatusCode());
+        return new ResponseEntity<>(ex.getStatusText(), ex.getStatusCode());
     }
 }
