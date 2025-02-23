@@ -157,8 +157,7 @@ public class OrderService {
         return stockItem.getAvailableQuantity() >= assetAmount;
     }
 
-    // TODO critical section
-    public void applyOrder(Order order) {
+    public synchronized void applyOrder(Order order) {
         if (!validateOrder(order)) {
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
