@@ -1,9 +1,5 @@
 package com.brokagefirm.challange;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 
 import org.springframework.http.HttpStatus;
@@ -17,16 +13,7 @@ import com.brokagefirm.challange.models.CustomerType;
 import org.springframework.security.core.GrantedAuthority;
 
 
-public class AnnotationAuth {
-    public static boolean isAdmin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            return false;
-        }
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(role -> role.equals("ROLE_" + CustomerType.ADMIN.name()));
-    }
+public class AuthHelper {
 
     public static void validate(Object obj) throws Exception {
         for (Method method : obj.getClass().getDeclaredMethods()) {
@@ -37,6 +24,24 @@ public class AnnotationAuth {
                 }
             }
         }
+    }
+
+    public static String getAuthUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return null;
+        }
+        return authentication.getName();
+    }
+
+    public static boolean isAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_" + CustomerType.ADMIN.name()));
     }
 
     public static void validateCustomer(Customer expectedCustomer) {

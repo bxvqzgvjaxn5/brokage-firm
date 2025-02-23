@@ -43,6 +43,14 @@ public class CustomerService {
         return customer.get();
     }
 
+    public Customer getCustomer(String email) {
+        Optional<Customer> customer = customerRepository.findByEmail(email);
+        if (!customer.isPresent()) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Customer not found with email: " + email);
+        }
+        return customer.get();
+    }
+
     public List<Customer> getCustomers() {
         return customerRepository.findAll();
     }

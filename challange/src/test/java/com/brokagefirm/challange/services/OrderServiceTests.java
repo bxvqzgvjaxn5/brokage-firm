@@ -18,7 +18,7 @@ import com.brokagefirm.challange.models.CustomerType;
 import com.brokagefirm.challange.models.Order;
 import com.brokagefirm.challange.models.OrderSide;
 import com.brokagefirm.challange.models.OrderStatus;
-import com.brokagefirm.challange.models.dtos.StockItem;
+import com.brokagefirm.challange.models.dtos.StockItemDTO;
 import com.brokagefirm.challange.repositories.OrderRepository;
 
 public class OrderServiceTests {
@@ -87,7 +87,7 @@ public class OrderServiceTests {
         when(this.mockOrderRepository.findByCustomerIdOrderByCreatedAtAsc(anyLong()))
             .thenReturn(Optional.of(orders));
 
-        StockItem stockItem = this.orderService.getStockItem(1L, 1L);
+        StockItemDTO stockItem = this.orderService.getStockItem(1L, 1L);
         assertEquals(8, stockItem.getQuantity());
         assertEquals(6, stockItem.getAvailableQuantity());
 
@@ -155,10 +155,189 @@ public class OrderServiceTests {
         when(this.mockOrderRepository.findByCustomerIdOrderByCreatedAtAsc(anyLong()))
             .thenReturn(Optional.of(orders));
 
-        StockItem stockItem = this.orderService.getStockItem(1L, 0L);
+        StockItemDTO stockItem = this.orderService.getStockItem(1L, 0L);
         assertEquals(82, stockItem.getQuantity());
         assertEquals(52, stockItem.getAvailableQuantity());
 
     }
 
+    @Test
+    public void testValidateOrder_whenSellingWithHavingEnoughAmountAsset() {
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setEmail("investor@example.com");
+        customer.setType(CustomerType.INVESTOR);
+
+        Asset asset = new Asset();
+        asset.setId(1L);
+        asset.setName("Asset");
+
+        Order assetInitOrder = new Order();
+        assetInitOrder.setCustomer(customer);
+        assetInitOrder.setAsset(asset);
+        assetInitOrder.setQuantity(100);
+        assetInitOrder.setPrice(1);
+        assetInitOrder.setSide(OrderSide.BUY);
+        assetInitOrder.setStatus(OrderStatus.MATCHED);
+
+        Order newOrder = new Order();
+        newOrder.setCustomer(customer);
+        newOrder.setAsset(asset);
+        newOrder.setQuantity(10);
+        newOrder.setPrice(1);
+        newOrder.setSide(OrderSide.SELL);
+        newOrder.setStatus(OrderStatus.PENDING);
+        
+
+        when(this.mockCustomerService.getCustomer(anyLong()))
+            .thenReturn(customer);
+
+        when(this.mockAssetService.getAsset(anyLong()))
+            .thenReturn(asset);
+
+        when(this.mockOrderRepository.findByCustomerIdOrderByCreatedAtAsc(anyLong()))
+            .thenReturn(Optional.of(List.of(assetInitOrder)));
+
+        Boolean isValidOrder = this.orderService.validateOrder(newOrder);
+        assertEquals(true, isValidOrder);
+    }
+
+
+
+    @Test
+    public void testValidateOrder_whenSellingWithHavingNOTEnoughAmountAsset() {
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setEmail("investor@example.com");
+        customer.setType(CustomerType.INVESTOR);
+
+        Asset asset = new Asset();
+        asset.setId(1L);
+        asset.setName("Asset");
+
+        Order assetInitOrder = new Order();
+        assetInitOrder.setCustomer(customer);
+        assetInitOrder.setAsset(asset);
+        assetInitOrder.setQuantity(3);
+        assetInitOrder.setPrice(1);
+        assetInitOrder.setSide(OrderSide.BUY);
+        assetInitOrder.setStatus(OrderStatus.MATCHED);
+
+        Order newOrder = new Order();
+        newOrder.setCustomer(customer);
+        newOrder.setAsset(asset);
+        newOrder.setQuantity(10);
+        newOrder.setPrice(1);
+        newOrder.setSide(OrderSide.SELL);
+        newOrder.setStatus(OrderStatus.PENDING);
+        
+
+        when(this.mockCustomerService.getCustomer(anyLong()))
+            .thenReturn(customer);
+
+        when(this.mockAssetService.getAsset(anyLong()))
+            .thenReturn(asset);
+
+        when(this.mockOrderRepository.findByCustomerIdOrderByCreatedAtAsc(anyLong()))
+            .thenReturn(Optional.of(List.of(assetInitOrder)));
+
+        Boolean isValidOrder = this.orderService.validateOrder(newOrder);
+        assertEquals(false, isValidOrder);
+    }
+
+
+
+    @Test
+    public void testValidateOrder_whenBuyingWithHavingEnoughMoney() {
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setEmail("investor@example.com");
+        customer.setType(CustomerType.INVESTOR);
+
+        Asset mainAsset = new Asset();
+        mainAsset.setId(1L);
+        mainAsset.setName(MAIN_ASSET_NAME);
+
+        Asset asset = new Asset();
+        asset.setId(2L);
+        asset.setName("Asset");
+
+        Order moneyInitOrder = new Order();
+        moneyInitOrder.setCustomer(customer);
+        moneyInitOrder.setAsset(mainAsset);
+        moneyInitOrder.setQuantity(100);
+        moneyInitOrder.setPrice(1);
+        moneyInitOrder.setSide(OrderSide.SELL);
+        moneyInitOrder.setStatus(OrderStatus.MATCHED);
+
+        Order newOrder = new Order();
+        newOrder.setCustomer(customer);
+        newOrder.setAsset(asset);
+        newOrder.setQuantity(10);
+        newOrder.setPrice(1);
+        newOrder.setSide(OrderSide.BUY);
+        newOrder.setStatus(OrderStatus.PENDING);
+        
+
+        when(this.mockCustomerService.getCustomer(anyLong()))
+            .thenReturn(customer);
+
+        when(this.mockAssetService.getAsset(1L)).thenReturn(mainAsset);
+        when(this.mockAssetService.getMainAsset()).thenReturn(mainAsset);
+        when(this.mockAssetService.getAsset(2L)).thenReturn(asset);
+
+        when(this.mockOrderRepository.findByCustomerIdOrderByCreatedAtAsc(anyLong()))
+            .thenReturn(Optional.of(List.of(moneyInitOrder)));
+
+        Boolean isValidOrder = this.orderService.validateOrder(newOrder);
+        assertEquals(true, isValidOrder);
+    }
+
+
+
+    @Test
+    public void testValidateOrder_whenBuyingWithHavingNOTEnoughMoney() {
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setEmail("investor@example.com");
+        customer.setType(CustomerType.INVESTOR);
+
+        Asset mainAsset = new Asset();
+        mainAsset.setId(1L);
+        mainAsset.setName(MAIN_ASSET_NAME);
+
+        Asset asset = new Asset();
+        asset.setId(2L);
+        asset.setName("Asset");
+
+        Order moneyInitOrder = new Order();
+        moneyInitOrder.setCustomer(customer);
+        moneyInitOrder.setAsset(mainAsset);
+        moneyInitOrder.setQuantity(3);
+        moneyInitOrder.setPrice(1);
+        moneyInitOrder.setSide(OrderSide.SELL);
+        moneyInitOrder.setStatus(OrderStatus.MATCHED);
+
+        Order newOrder = new Order();
+        newOrder.setCustomer(customer);
+        newOrder.setAsset(asset);
+        newOrder.setQuantity(10);
+        newOrder.setPrice(1);
+        newOrder.setSide(OrderSide.BUY);
+        newOrder.setStatus(OrderStatus.PENDING);
+        
+
+        when(this.mockCustomerService.getCustomer(anyLong()))
+            .thenReturn(customer);
+
+        when(this.mockAssetService.getAsset(1L)).thenReturn(mainAsset);
+        when(this.mockAssetService.getMainAsset()).thenReturn(mainAsset);
+        when(this.mockAssetService.getAsset(2L)).thenReturn(asset);
+
+        when(this.mockOrderRepository.findByCustomerIdOrderByCreatedAtAsc(anyLong()))
+            .thenReturn(Optional.of(List.of(moneyInitOrder)));
+
+        Boolean isValidOrder = this.orderService.validateOrder(newOrder);
+        assertEquals(false, isValidOrder);
+    }
 }

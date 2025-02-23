@@ -14,7 +14,7 @@ import com.brokagefirm.challange.models.Customer;
 import com.brokagefirm.challange.models.Order;
 import com.brokagefirm.challange.models.OrderSide;
 import com.brokagefirm.challange.models.OrderStatus;
-import com.brokagefirm.challange.models.dtos.StockItem;
+import com.brokagefirm.challange.models.dtos.StockItemDTO;
 import com.brokagefirm.challange.repositories.OrderRepository;
 
 @Service
@@ -40,6 +40,14 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
+    public Order getOrder(Long id) {
+        Optional<Order> ordersO = orderRepository.findById(id);
+        if (!ordersO.isPresent()) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Orders not found for customer with id: " + id);
+        }
+        return ordersO.get();
+    }
+
     public Order createOrder(Order order) {
         if (order.getAsset().getName().contentEquals(mainAssetName)) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Main asset cannot be traded");
@@ -50,7 +58,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public void deleteOrder(Long id) {
+    public void cancelOrder(Long id) {
         Optional<Order> orderO = orderRepository.findById(id);
         if (!orderO.isPresent()) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Order not found with id: " + id);
@@ -70,7 +78,7 @@ public class OrderService {
         order.setAsset(savedAsset);
         order.setQuantity(quantity);
         order.setPrice(price);
-        order.setSide(OrderSide.BUY);
+        order.setSide(OrderSide.SELL);
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(new Date());
         orderRepository.save(order);
@@ -91,12 +99,12 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public StockItem getStockItem(Long customerId, Long assetId) {
+    public StockItemDTO getStockItem(Long customerId, Long assetId) {
         // check if customer exists
         customerService.getCustomer(customerId);
         Asset asset = assetService.getAsset(assetId);
 
-        StockItem stock = new StockItem();
+        StockItemDTO stock = new StockItemDTO();
         stock.setAsset(asset);
         stock.setQuantity(0);
         stock.setAvailableQuantity(0);
@@ -134,5 +142,45 @@ public class OrderService {
         }
 
         return stock;
+    }
+
+    protected boolean validateOrder(Order order) {
+        Integer assetAmount;
+        StockItemDTO stockItem;
+        if (order.getSide().equals(OrderSide.BUY)) {
+            stockItem = getStockItem(order.getCustomer().getId(), assetService.getMainAsset().getId());
+            assetAmount = order.getQuantity() * order.getPrice();
+        } else {
+            stockItem = getStockItem(order.getCustomer().getId(), order.getAsset().getId());
+            assetAmount = order.getQuantity();
+        }
+        return stockItem.getAvailableQuantity() >= assetAmount;
+    }
+
+    // TODO critical section
+    public void matchOrder(Order order) {
+        if (!validateOrder(order)) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Insufficient funds");
+        }
+        OrderSide oppositeOrderSide = order.getSide() == OrderSide.BUY ? OrderSide.SELL : OrderSide.BUY;
+        Optional<List<Order>> ordersO = orderRepository.findByStatusAndSideOrderByCreatedAtAsc(OrderStatus.PENDING, oppositeOrderSide);
+        if (!ordersO.isPresent()) {
+            return;
+        }
+        List<Order> orders = ordersO.get();
+
+        for (Order oppositeOrder : orders) {
+            if (
+                (oppositeOrder.getAsset().getId() == order.getAsset().getId()) &&
+                (oppositeOrder.getQuantity() == order.getQuantity()) &&
+                (oppositeOrder.getPrice() == order.getPrice())
+            ) {
+                order.setStatus(OrderStatus.MATCHED);
+                oppositeOrder.setStatus(OrderStatus.MATCHED);
+                orderRepository.save(order);
+                orderRepository.save(oppositeOrder);
+                break;
+            }
+        }
     }
 }

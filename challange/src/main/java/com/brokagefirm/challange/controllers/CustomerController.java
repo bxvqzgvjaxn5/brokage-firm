@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.brokagefirm.challange.AnnotationAuth;
+import com.brokagefirm.challange.AuthHelper;
 import com.brokagefirm.challange.AnnotationAuthCheck;
 import com.brokagefirm.challange.models.Asset;
 import com.brokagefirm.challange.models.Customer;
 import com.brokagefirm.challange.models.CustomerType;
-import com.brokagefirm.challange.models.dtos.StockItem;
+import com.brokagefirm.challange.models.dtos.StockItemDTO;
 import com.brokagefirm.challange.services.AssetService;
 import com.brokagefirm.challange.services.CustomerService;
 import com.brokagefirm.challange.services.OrderService;
@@ -64,17 +64,23 @@ public class CustomerController {
     }
 
     @GetMapping("/customers/{id}/stocks")
-    public List<StockItem> getStocks(@PathVariable Long id) {
-        AnnotationAuth.validateCustomer(customerService.getCustomer(id));
+    public List<StockItemDTO> getStocks(@PathVariable Long id) {
+        AuthHelper.validateCustomer(customerService.getCustomer(id));
 
         List<Asset> assets = assetService.getAssets();
-        List<StockItem> stocks = new ArrayList<>();
+        List<StockItemDTO> stocks = new ArrayList<>();
         for (Asset asset : assets) {
-            StockItem stock = orderService.getStockItem(id, asset.getId());
+            StockItemDTO stock = orderService.getStockItem(id, asset.getId());
             if (stock.getQuantity() > 0) {
                 stocks.add(stock);
             }
         }
         return stocks;
+    }
+
+    @GetMapping("/customers/{id}/stocks/{assetId}")
+    public StockItemDTO getStock(@PathVariable Long id, @PathVariable Long assetId) {
+        AuthHelper.validateCustomer(customerService.getCustomer(id));
+        return orderService.getStockItem(id, assetId);
     }
 }
