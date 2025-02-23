@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.brokagefirm.challange.AuthHelper;
-import com.brokagefirm.challange.AnnotationAuthCheck;
+import com.brokagefirm.challange.aspects.RoleCheck;
 import com.brokagefirm.challange.models.Asset;
 import com.brokagefirm.challange.models.Customer;
 import com.brokagefirm.challange.models.CustomerType;
@@ -39,26 +39,27 @@ public class CustomerController {
     }
 
     @GetMapping("/customers")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
+    @RoleCheck(CustomerType.ADMIN)
     public List<Customer> getCustomers() {
         return customerService.getCustomers();
     }
 
     @GetMapping("/customers/{id}")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
     public Customer getCustomer(@RequestParam Long id) {
+        Customer customer = customerService.getCustomer(id);
+        AuthHelper.validateCustomer(customer);
         return customerService.getCustomer(id);
     }
 
     @PostMapping("/customers")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
+    @RoleCheck(CustomerType.ADMIN)
     public void createCustomer(@RequestBody Customer customer) {
         Customer savedCustomer = customerService.createCustomer(customer);
         orderService.depositMoney(savedCustomer.getId(), 100);
     }
 
     @PostMapping("/customers/{id}/deposit")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
+    @RoleCheck(CustomerType.ADMIN)
     public void depositMoney(@RequestParam Long id, @RequestParam Integer amount) {
         orderService.depositMoney(id, amount);
     }

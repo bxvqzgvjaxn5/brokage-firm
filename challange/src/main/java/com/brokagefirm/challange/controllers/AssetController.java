@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.brokagefirm.challange.AnnotationAuthCheck;
+import com.brokagefirm.challange.aspects.RoleCheck;
 import com.brokagefirm.challange.models.Asset;
 import com.brokagefirm.challange.models.CustomerType;
 import com.brokagefirm.challange.models.Order;
@@ -33,19 +33,19 @@ public class AssetController {
     }
 
     @PostMapping("/assets")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
+    @RoleCheck(CustomerType.ADMIN)
     public Asset createAsset(@RequestBody Asset asset) {
         return assetService.createAsset(asset);
     }
 
     @DeleteMapping("/assets/{id}")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
+    @RoleCheck(CustomerType.ADMIN)
     public void deleteAsset(@PathVariable Long id) {
         assetService.deleteAsset(id);
     }
 
     @PostMapping("/public-offer")
-    @AnnotationAuthCheck(CustomerType.ADMIN)
+    @RoleCheck(CustomerType.ADMIN)
     public void publicOffer(@RequestBody Order order) {
         orderService.createPublicOffer(order.getAsset().getId(), order.getQuantity(), order.getPrice());
     }

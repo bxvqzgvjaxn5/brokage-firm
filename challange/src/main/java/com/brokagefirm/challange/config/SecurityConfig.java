@@ -1,4 +1,4 @@
-package com.brokagefirm.challange;
+package com.brokagefirm.challange.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

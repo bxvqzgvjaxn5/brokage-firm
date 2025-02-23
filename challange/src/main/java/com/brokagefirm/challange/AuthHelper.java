@@ -15,17 +15,6 @@ import org.springframework.security.core.GrantedAuthority;
 
 public class AuthHelper {
 
-    public static void validate(Object obj) throws Exception {
-        for (Method method : obj.getClass().getDeclaredMethods()) {
-            if (method.isAnnotationPresent(AnnotationAuthCheck.class)) {
-                AnnotationAuthCheck annotation = method.getAnnotation(AnnotationAuthCheck.class);
-                if (annotation.value() == CustomerType.ADMIN && !isAdmin()) {
-                    throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Forbidden");
-                }
-            }
-        }
-    }
-
     public static String getAuthUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {

@@ -1,4 +1,4 @@
-FROM maven:3.8.4-openjdk-19 AS build
+FROM maven:3.9.0-eclipse-temurin-19 as build
 WORKDIR /app
 COPY challange/pom.xml .
 RUN mvn dependency:go-offline
